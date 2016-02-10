@@ -11,9 +11,10 @@ Trevor Ross
 import copy
 import random
 import time
+import heapq
 
 ################################################################################
-## CLASSES
+# CLASSES
 ################################################################################
 
 class Node(object):
@@ -25,6 +26,9 @@ class Node(object):
         self.state = state  # format: [[... row 1 ...], [... row 2 ...], ...]
         # action that was taken on the parent node to produce this child node
         self.action = action  # format: [color_num, row_shift, col_shift]
+        # the sum of the distances between each color's path_heads and path_end
+        # if all colors are connected, total_dist will be 0
+        self.total_dist = None
 
         # copy info from parent if one exists
         if parent_node is None:
@@ -45,6 +49,26 @@ class Node(object):
             # coordinates of end positions of all colors in puzzle
             self.path_end = parent_node.path_end.copy()  # format: {0:[r0,c0], 1:[r1,c1], ...}
 
+    def update_total_dist(self):
+        """
+        Finds the total distance from each color's path_head to its path_end.
+
+        WARNING: self.path_heads must be updated before running this method.
+        This number is stored in self.total_dist and is used as the hueristic
+        to prioritize actions on a color path. The smaller the distance, the
+        more it will be prioritized.
+        """
+        self.total_dist = 0
+
+        for color_num in self.path_start.keys():
+            start = self.path_heads[color_num]
+            end = self.path_end[color_num]
+
+            row_diff = abs(start[0] - end[0])
+            col_diff = abs(start[1] - end[1])
+            path_len = row_diff + col_diff
+            self.total_dist += path_len
+
     def state_info(self):
         """Prints contents of all member variables in node"""
         print '=' * 30
@@ -55,6 +79,7 @@ class Node(object):
         print 'path_start:', self.path_start
         print 'path_heads:', self.path_heads
         print 'path_end:', self.path_end
+        print 'total distance:', self.total_dist
 
     def visualize(self):
         """
@@ -112,73 +137,53 @@ class StateTree(object):
         self.root.path_heads = self.root.path_start
         # find coordinates of the end of the color path
         self.root.path_end = FindColorEnd(self.root.state, self.num_colors)
-        # the root has a path cost of 0
+        # initialize root's path cost and total distance from goal
         self.root.path_cost = 0
+        self.root.update_total_dist()
         # timing variable
         self.run_time = None
+        # used to look up a node by its ID
+        self.node_dict = {self.root.ID: self.root}
 
-
-    def ID_DFTS(self):
+    def BestFirst_TS(self):
         """
-        Iterative Depening - Depth First Tree search
+        Uses Greedy Best-First Tree Search to find solution
 
-        Calls DFTS with a depth limit starting at 0, going to infinity until
-        either a goal is found or the puzzle is determined to be unsolvable
+        Heuristic = shortest distance between path_head and path_end
+        Action that produces the state with the smallest heuristic(n) is chosen
         """
         self.run_time = time.time()
-        depth_limit = 0
+        # create the priority queue and put the root in it
+        # format: [node_priority, node_ID]
+        frontier = []
+        heapq.heappush(frontier, [self.root.total_dist, self.root.ID])
 
+        # loop until broken by final state
         while True:
-            # print '=== RUNNING DFTS WITH L = %d ===' % depth_limit
-            result = self.RecursiveDFTS(self.root, depth_limit)
-            if result != 'cutoff':
-                # the puzzle has either been solved or found to be unsolvable
+            # pop the first item of the priority queue, it will be evaluated
+            node_ev = heapq.heappop(frontier)
+            node_ev = self.node_dict[node_ev[1]]
+            # check if the node is the final state
+            if VerifyFinal(node_ev) is True:
                 self.run_time = time.time() - self.run_time
-                return result
-            # increase the depth and try again
-            depth_limit += 1
+                return TraceBack(node_ev, self.node_dict)
 
-
-    def RecursiveDFTS(self, node, depth_limit):
-        """
-        Performs Depth First Tree Search using recution
-
-        OUTPUT: 'fail', 'cutoff', or a solution
-        solution contains a list of nodes with the last item being the final state
-        """
-        if VerifyFinal(node) is True:
-            return [node]
-        elif depth_limit == 0:
-            # the depth limit has been reached
-            return 'cutoff'
-        else:
-            cutoff_occurred = False
-            # OPTIMIZATION: store the list of final states from the if statement
-            # above and pass it to the Action() funtion so it doen't have to
-            # check the same thing again
-            valid_actions = Action(node, self.num_colors)
+            # find all the valid actions from node_ev and iterate through them
+            valid_actions = Action(node_ev, self.num_colors)
             for color_num, action, new_coord in valid_actions:
                 self.uniq_ID += 1
                 # retulting child state from parent acted on by action
-                child_state = Result(node.state, node.path_heads[color_num], action)
+                child_state = Result(node_ev.state, node_ev.path_heads[color_num], action)
                 # create the new child node
-                child = Node(self.uniq_ID, child_state, action=([color_num] + new_coord), parent_node=node)
-                # updated the child's path head
+                child = Node(self.uniq_ID, child_state, action=([color_num] + new_coord), parent_node=node_ev)
+                # updated the child's path head and total_dist
                 child.path_heads[color_num] = new_coord
-                # perform recursive DFTS on newly created child
-                result = self.RecursiveDFTS(child, depth_limit - 1)
-                # analize result of recursive call
-                if result == 'cutoff':
-                    cutoff_occurred = True
-                elif result != 'fail':
-                    # Recursive call succeded!!!
-                    return [node] + result
-
-            # all children have been tested, none were successful :(
-            if cutoff_occurred:
-                return 'cutoff'
-            else:
-                return 'fail'
+                child.update_total_dist()
+                # add child to node_dict and frontier
+                self.node_dict[child.ID] = child
+                # adding child to frontier will automatically insert it at the
+                # correct position in the priority queue
+                heapq.heappush(frontier, [child.total_dist, child.ID])
 
 ################################################################################
 ## FUNCTIONS
@@ -431,6 +436,25 @@ def Result(p_state, coord, action):
     return new_state
 
 
+def TraceBack(end_node, node_dict):
+    """
+    Given the final node. find path from the final node to the root
+
+    OUTPUT: list of all the nodes from root to final. [root, ... , final]
+    """
+    node_path = []
+    node = end_node
+    # keep adding node to node_path until root node is found
+    while node.action is not None:
+        # insert in front of list since traversal is bottom-up
+        node_path.insert(0, node)
+        # move to parent node
+        node = node_dict[node.p_ID]
+    # add the root
+    node_path.insert(0, node)
+    return node_path
+
+
 def DirPrint(directions):
     """
     Translates list of actiton coordinates into plain english and prints them
@@ -465,8 +489,8 @@ def DirPrint(directions):
 def solve(pzzl_array, num_colors):
     random.seed()
 
-    # build state tree to find solution
+    # build state tree and find solution
     PTree = StateTree(pzzl_array, num_colors)
-    solution = PTree.ID_DFTS()
+    solution = PTree.BestFirst_TS()
 
     return (solution, PTree.run_time)
