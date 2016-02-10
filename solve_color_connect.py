@@ -48,7 +48,8 @@ def ReadInput(pzzl_file):
     the input puzzle will follow as a square matrix
     OUTPUT: returns a tuple with the number of colors and the puzzle as a 2D array
     """
-    f_hand = open(pzzl_file)
+    in_file_path = 'input/' + pzzl_file
+    f_hand = open(in_file_path)
 
     pzzl_array = []
     # read every line into pzzle_array (even first line)
@@ -101,7 +102,8 @@ def UglyPrint(sol_nodes, duration):
     final_state = sol_nodes[-1].state
     in_file_name = sys.argv[1]
     out_file_name = 'p%s_solution.txt' % in_file_name[7]
-    out_file = open(out_file_name, 'w')
+    out_file_path = 'output/' + out_file_name
+    out_file = open(out_file_path, 'w')
 
     # time in microseconds
     print int(duration * 1000000)
