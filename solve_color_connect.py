@@ -106,11 +106,9 @@ def UglyPrint(sol_nodes, duration):
     out_file = open(out_file_path, 'w')
 
     # time in microseconds
-    print int(duration * 1000000)
     out_file.write(str(int(duration * 1000000)))
     out_file.write('\n')
     # path cost of solution
-    print sol_nodes[-1].path_cost
     out_file.write(str(sol_nodes[-1].path_cost))
     out_file.write('\n')
 
@@ -130,20 +128,17 @@ def UglyPrint(sol_nodes, duration):
         # build output with rows and colums revered per Dr. T's request
         output = '%d %d %d%s' % (action[0], action[2], action[1], comma)
         # print actions
-        print output,
         out_file.write(output)
-    print
     out_file.write('\n')
 
     # print final state
     for row in final_state:
         for char in row:
-            print char,
             out_file.write(char + ' ')
-        print
         out_file.write('\n')
 
     out_file.close()
+    print 'DONE!\nView %s for solution' % out_file_path
 
 
 def PrettyPrint(start_node):

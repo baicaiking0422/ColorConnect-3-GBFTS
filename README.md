@@ -5,6 +5,7 @@
 * *Use Python 2.7*  
 * Type `python solve_color_connect.py input_p1.txt`
 * Tested and working on OS X, Unix, and Windows
+* NOTE: 'output' directory must be created in same directory as solve_color_connect.py for script to function
 
 #### Output
 `180088` <- solution took 180088 **_microseconds_**   
