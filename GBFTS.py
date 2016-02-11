@@ -164,7 +164,7 @@ class StateTree(object):
         heapq.heappush(frontier, [self.root.total_dist, self.root.ID])
 
         # loop until broken by final state
-        while True:
+        while frontier:
             # pop the first item of the priority queue, it will be evaluated
             node_ev = heapq.heappop(frontier)
             node_ev = self.node_dict[node_ev[1]]
@@ -212,6 +212,10 @@ class StateTree(object):
             if self.show_status:
                 self.state_of_affairs(frontier, node_ev, actions, children)
             ###########
+
+        # No solution was found
+        self.run_time = time.time() - self.run_time
+        return False
 
 
     def state_of_affairs(self, frontier, parent, actions, children):
@@ -553,11 +557,10 @@ def solve(pzzl_array, num_colors):
     return (solution, PTree.run_time)
 
 # TODO
-# check what happens if puzzle is unsolvable
 # CREATE A BRANCH FOR CHANGES BELLOW
 # Remove comment about returning only the action that results in the final state
 # remove state_of_affairs() and all associated lines (including dir print)
-# remove optimizations list
+# remove all optimization in list
 
 # OPTIMIZATIONS ADDED
 # Path cannot be adjacent to itself (test this)

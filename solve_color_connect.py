@@ -158,17 +158,18 @@ def main(args):
     solution, run_time = GBFTS.solve(pzzl_array, num_colors)
 
     # print solution
-    if solution is 'fail':
+    if solution is False:
         print '== NO SOLUTION POSSIBLE! =='
-    elif not appreciation_4_beauty:
-        UglyPrint(solution, run_time)
     else:
-        for node in solution:
-            print '== STATE %d - LEVEL %d ==' % (node.ID, node.path_cost)
-            # node.state_info()
-            node.visualize()
-        print '== FINISHED IN %4.4f SECONDS ==' % run_time
-        # print '== WITH %d STATES CREATED ==', % PTree.uniq_ID
+        if not appreciation_4_beauty:
+            UglyPrint(solution, run_time)
+        else:
+            for node in solution:
+                print '== STATE %d - LEVEL %d ==' % (node.ID, node.path_cost)
+                # node.state_info()
+                node.visualize()
+            print '== FINISHED IN %4.4f SECONDS ==' % run_time
+            # print '== WITH %d STATES CREATED ==', % PTree.uniq_ID
 
 if __name__ == "__main__":
     main(sys.argv)
