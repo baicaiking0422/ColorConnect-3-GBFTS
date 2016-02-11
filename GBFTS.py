@@ -49,7 +49,7 @@ class Node(object):
             # coordinates of end positions of all colors in puzzle
             self.path_end = parent_node.path_end.copy()  # format: {0:[r0,c0], 1:[r1,c1], ...}
 
-    def update_total_dist(self):
+    def heuristic(self):
         """
         Finds the total distance from each color's path_head to its path_end.
 
@@ -139,7 +139,7 @@ class StateTree(object):
         self.root.path_end = FindColorEnd(self.root.state, self.num_colors)
         # initialize root's path cost and total distance from goal
         self.root.path_cost = 0
-        self.root.update_total_dist()
+        self.root.heuristic()
         # timing variable
         self.run_time = None
         # used to look up a node by its ID
@@ -186,7 +186,7 @@ class StateTree(object):
                 child = Node(self.uniq_ID, child_state, action=([color_num] + new_coord), parent_node=node_ev)
                 # updated the child's path head and total_dist
                 child.path_heads[color_num] = new_coord
-                child.update_total_dist()
+                child.heuristic()
                 # add child to node_dict and frontier
                 self.node_dict[child.ID] = child
                 # adding child to frontier will automatically insert it at the
