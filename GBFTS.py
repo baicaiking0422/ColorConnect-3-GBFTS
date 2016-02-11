@@ -145,10 +145,6 @@ class StateTree(object):
         # used to look up a node by its ID
         self.node_dict = {self.root.ID: self.root}
 
-        ########
-        self.show_status = False
-        ########
-
     def BestFirst_TS(self):
         """
         Uses Greedy Best-First Tree Search to find solution
@@ -157,13 +153,12 @@ class StateTree(object):
         Action that produces the state with the smallest heuristic(n) is chosen
         """
         self.run_time = time.time()
-
         # create the priority queue and put the root in it
         # format: [node_priority, node_ID]
         frontier = []
         heapq.heappush(frontier, [self.root.total_dist, self.root.ID])
 
-        # loop until broken by final state
+        # loop until broken by final state or no nodes left in frontier
         while frontier:
             # pop the first item of the priority queue, it will be evaluated
             node_ev = heapq.heappop(frontier)
@@ -178,11 +173,6 @@ class StateTree(object):
             if VerifyFinal(node_ev) is True:
                 self.run_time = time.time() - self.run_time
                 return TraceBack(node_ev, self.node_dict)
-
-            ############
-            children = []
-            actions = []
-            ############
 
             # find all the valid actions from node_ev and iterate through them
             valid_actions = Action(node_ev, self.num_colors)
@@ -203,46 +193,9 @@ class StateTree(object):
                 # correct position in the priority queue
                 heapq.heappush(frontier, [child.total_dist, child.ID])
 
-                ###########
-                children.append(child)
-                actions.append(action + [color_num])
-                ###########
-
-            ###########
-            if self.show_status:
-                self.state_of_affairs(frontier, node_ev, actions, children)
-            ###########
-
         # No solution was found
         self.run_time = time.time() - self.run_time
         return False
-
-
-    def state_of_affairs(self, frontier, parent, actions, children):
-        front2 = copy.deepcopy(frontier)
-        print
-        print '='*5, 'STATE OF AFFAIRS', '='*5
-        print 'node_dict size:', len(self.node_dict)
-        print 'frontier size:', len(frontier)
-        for i in xrange(len(front2)):
-            print heapq.heappop(front2),
-        print
-        print
-        print '-'*5, 'PARENT', '-'*5
-        parent.state_info()
-        parent.visualize()
-        DirPrint(actions)
-        print
-        print '-'*5, 'CHILDREN', '-'*5
-        for child in children:
-            # child.visualize()
-            pass
-        print
-        print 'v'*5, 'enter to continue, q to quit, f to finish', 'v'*5
-        result = raw_input('>')
-        if result == 'q': exit(1)
-        if result == 'f': self.show_status = False
-
 
 ################################################################################
 ## FUNCTIONS
@@ -559,7 +512,6 @@ def solve(pzzl_array, num_colors):
 # TODO
 # CREATE A BRANCH FOR CHANGES BELLOW
 # Remove comment about returning only the action that results in the final state
-# remove state_of_affairs() and all associated lines (including dir print)
 # remove all optimization in list
 
 # OPTIMIZATIONS ADDED
