@@ -318,16 +318,12 @@ def Action(node, num_colors):
 
     # iterate through remaining colors, finding actions for each
     for color in color_numbers:
-        old_length = len(valid_actions)
         # add actions for this color to the valid actions list
         valid_actions += (ActionOnColor(node, color))
-        # if no new actions were added, this color has hit a dead end
-        if len(valid_actions) == old_length:
-            # since it has hit a dead end and it's not final, no actions returned
-            return []
 
     random.shuffle(valid_actions)
     return valid_actions
+
 
 def ActionOnColor(node, color):
     """
@@ -337,7 +333,6 @@ def ActionOnColor(node, color):
     VALID MOVE DISQUALIFICATION:
     1) action moves color path out of puzzle's bounds
     2) action moves color path onto a pre-existing path
-    3) action moves color path adjacent to itself, aka, the path 'touches' itself
     OUTPUT: returns a list of valid actions as well as the coordinates they
     result in, along with the color the action was performed on
     FORMAT: the 4 possible actions are: [[-1,0], [0,1], [1,0], [0,-1]]
@@ -348,84 +343,24 @@ def ActionOnColor(node, color):
 
     # actions in order: up, right, down, left
     action_options = [[-1,0], [0,1], [1,0], [0,-1]]
-    random.shuffle(action_options)
-
     for action in action_options:
         new_row = coord[0] + action[0]
         new_col = coord[1] + action[1]
-        # if new cell is the the end cell, return only the associated action
+        new_coord = [new_row, new_col]
+        # if new cell is the the goal cell, add it to the list of valid actions
         if [new_row, new_col] == end_coord:
-            new_coord = [new_row, new_col]
-            return [[color, action, new_coord]]
+            valid_actions.append([color, action, new_coord])
+            continue
         # 1) invalid if action is out-of-bounds
         if OutOfBounds([new_row, new_col], len(node.state)):
             continue
         # 2) invalid if new cell is already occupied
         if node.state[new_row][new_col] != 'e':
             continue
-        # 3) invalid if action results in path becoming adjacent to itself
-        # check all 4 adjacent cells for same color
-        for adj in action_options:
-            adj_row = new_row + adj[0]
-            adj_col = new_col + adj[1]
-            is_adjacent = False
-            # check if adjacent cell is out-of-bounds
-            if OutOfBounds([adj_row, adj_col], len(node.state)):
-                continue
-            if node.state[adj_row][adj_col] == str(color):
-                # ignore if adjacent cell is the end cell
-                if [adj_row, adj_col] != end_coord:
-                    # ignore if adjacent cell is the previous path head
-                    if [adj_row, adj_col] != coord:
-                        is_adjacent = True
-                        break
-        if is_adjacent:
-            continue
-        else:
-            new_coord = [new_row, new_col]
-            valid_actions.append([color, action, new_coord])
+        # otherwise, it is invalid
+        valid_actions.append([color, action, new_coord])
 
     return valid_actions
-
-
-def VerifyFinal(node):
-    """
-    Verify that the passed node has a final state
-
-    IF FINAL: return True
-    IF NOT FINAL: return a list of those colors who are final
-    """
-    # Setting SMART_FINAL_DETECT to True reduces the max depth_limit by
-    # 2 levels, making the time comlexity O(b^(d-2))
-    # Unfortunatly, I am not allowed to use this method for the homework
-    SMART_FINAL_DETECT = False
-    colors_connected = []
-
-    for color in node.path_end:
-        # get path_end and path_head coordinates for color
-        end = node.path_end[color]
-        head = node.path_heads[color]
-
-        if SMART_FINAL_DETECT:
-            # get the difference (offset) betweeen the path_head and path_end
-            row_diff = head[0] - end[0]
-            col_diff = head[1] - end[1]
-            # if the endpoint is adjacent to the path head then state is final
-            if [row_diff, col_diff] in [[-1,0], [0,1], [1,0], [0,-1]]:
-                colors_connected.append(color)
-
-        # This is the strait-forward, dumb method of detecting a final state
-        # It greatly increases the time requred for solution to be found
-        else:
-            if end == head:
-                colors_connected.append(color)
-
-    # if all colors are connected, return true
-    if len(colors_connected) == len(node.path_end):
-        return True
-    # otherwise return a list of the colors who are connected
-    else:
-        return colors_connected
 
 
 def Result(p_state, coord, action):
@@ -444,6 +379,30 @@ def Result(p_state, coord, action):
     new_state[new_row][new_col] = color_path_to_extend
 
     return new_state
+
+
+def VerifyFinal(node):
+    """
+    Verify that the passed node has a final state
+
+    IF FINAL: return True
+    IF NOT FINAL: return a list of those colors who are final
+    """
+    colors_connected = []
+
+    for color in node.path_end:
+        # get path_end and path_head coordinates for color
+        end = node.path_end[color]
+        head = node.path_heads[color]
+        if end == head:
+            colors_connected.append(color)
+
+    # if all colors are connected, return true
+    if len(colors_connected) == len(node.path_end):
+        return True
+    # otherwise return a list of the colors who are connected
+    else:
+        return colors_connected
 
 
 def TraceBack(end_node, node_dict):
@@ -508,16 +467,3 @@ def solve(pzzl_array, num_colors):
     solution = PTree.BestFirst_TS()
 
     return (solution, PTree.run_time)
-
-# TODO
-# CREATE A BRANCH FOR CHANGES BELLOW
-# Remove comment about returning only the action that results in the final state
-# remove all optimization in list
-
-# OPTIMIZATIONS ADDED
-# Path cannot be adjacent to itself (test this)
-# no actions taken on ANY color if one color is at a dead end
-# do not return actions on colors who have been connected
-# if an action is found to connect the color to the goal, only return that action
-    # for that color
-# SMART_FINAL_DETECT option (disabled by default)
