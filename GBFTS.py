@@ -58,7 +58,7 @@ class Node(object):
         to prioritize actions on a color path. The smaller the distance, the
         more it will be prioritized.
         """
-        self.total_dist = 0
+        self.total_dist = 0.0
 
         for color_num in self.path_start.keys():
             start = self.path_heads[color_num]
@@ -66,7 +66,7 @@ class Node(object):
 
             row_diff = abs(start[0] - end[0])
             col_diff = abs(start[1] - end[1])
-            path_len = row_diff + col_diff
+            path_len = (row_diff ** 2 + col_diff ** 2) ** (0.5)
             self.total_dist += path_len
 
     def state_info(self):
@@ -149,6 +149,7 @@ class StateTree(object):
 
         ########
         self.show_status = False
+        ########
 
     def BestFirst_TS(self):
         """
@@ -168,8 +169,8 @@ class StateTree(object):
             # pop the first item of the priority queue, it will be evaluated
             node_ev = heapq.heappop(frontier)
             node_ev = self.node_dict[node_ev[1]]
-            node_ev.visualize()
-            time.sleep(.2)
+            # node_ev.visualize()
+            # time.sleep(.2)
             # check if the node is the final state
             if VerifyFinal(node_ev) is True:
                 print 'size of dict:', len(self.node_dict)
@@ -394,11 +395,11 @@ def ActionOnColor(node, color):
     for action in action_options:
         new_row = coord[0] + action[0]
         new_col = coord[1] + action[1]
-        # if new cell is the teh end cell, finish loop on that note
+        # if new cell is the the end cell, return only the associated action
         if [new_row, new_col] == end_coord:
             new_coord = [new_row, new_col]
             valid_actions.append([color, action, new_coord])
-            break
+            return [[color, action, new_coord]]
         # 1) invalid if action is out-of-bounds
         if OutOfBounds([new_row, new_col], len(node.state)):
             continue
@@ -554,4 +555,4 @@ def solve(pzzl_array, num_colors):
 # TODO
 # check what happens if puzzle is unsolvable
 # make sure entries in frontier with equal h(n) values are in the correct order (lowest ID first)
-#
+# Remove comment about returning only the action that results in the final state
