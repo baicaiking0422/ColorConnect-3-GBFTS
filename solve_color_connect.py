@@ -146,6 +146,62 @@ def UglyPrint(sol_nodes, duration):
     out_file.close()
 
 
+def PrettyPrint(start_node):
+    """
+    Reads the output files created by UglyPrint and visualizes them in stdout
+
+    Also serves as a way to error-check the solution files
+    """
+    in_file_name = sys.argv[1]
+    solution_file_name = 'p%s_solution.txt' % in_file_name[7]
+    sol_file_path = 'output/' + solution_file_name
+    solution_file = open(sol_file_path, 'r')
+
+    # READ FROM FILE
+    # line 1
+    microseconds = float(solution_file.readline())
+    seconds = microseconds / 1000000
+    # line 2
+    step_count = int(solution_file.readline())
+    # line 3
+    steps = solution_file.readline()
+    solution_file.close()
+    # seperate each action delimited by ','
+    steps = steps.split(',')
+    if len(steps) != step_count:
+        print 'ERROR: step count does not agree with number of actions taken'
+        print 'STEP COUNT:', step_count
+        print 'ACTIONS:', steps
+        exit(1)
+    # put actions into a list
+    actions = []
+    for step in steps:
+        # seperate each item of the action delimited by ' '
+        action = step.split()
+        actions.append(action)
+
+    # BEGIN PRINTING
+    # print the root
+    print '\nVISUAL OUTPUT OF SOLUTION FILE'
+    move_counter = 0
+    print '<<< ACTION %d >>>' % move_counter
+    start_node.visualize()
+    # print the rest of the states
+    for action in actions:
+        color = action[0]
+        col = int(action[1])
+        row = int(action[2])
+
+        start_node.state[row][col] = color
+        start_node.path_heads[int(color)] = [row, col]
+        # print the state
+        move_counter += 1
+        print '<<< ACTION %d >>>' % move_counter
+        start_node.visualize()
+
+
+    print '== FINISHED IN %4.4f SECONDS ==' % seconds
+
 ################################################################################
 # Main
 ################################################################################
@@ -161,15 +217,9 @@ def main(args):
     if solution is False:
         print '== NO SOLUTION POSSIBLE! =='
     else:
-        if not appreciation_4_beauty:
-            UglyPrint(solution, run_time)
-        else:
-            for node in solution:
-                print '== STATE %d - LEVEL %d ==' % (node.ID, node.path_cost)
-                # node.state_info()
-                node.visualize()
-            print '== FINISHED IN %4.4f SECONDS ==' % run_time
-            # print '== WITH %d STATES CREATED ==', % PTree.uniq_ID
+        UglyPrint(solution, run_time)
+        if appreciation_4_beauty:
+            PrettyPrint(solution[0])
 
 if __name__ == "__main__":
     main(sys.argv)
