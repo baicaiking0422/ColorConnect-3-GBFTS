@@ -1,5 +1,4 @@
-# Puzzle Assignment 1 - Phase 3
-### Greedy Best-First Tree Search
+# Color Connect - Greedy Best-First Tree Search
 
 ## How to Build the Script
 #### Compiling*
