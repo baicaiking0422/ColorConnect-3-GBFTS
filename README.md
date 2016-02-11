@@ -1,4 +1,5 @@
-# Puzzle Assignment 1 - Phase 1
+# Puzzle Assignment 1 - Phase 3
+### Greedy Best-First Tree Search
 
 ## How to Build the Script
 #### Compiling*
@@ -17,18 +18,26 @@
 
 #### Output 2
 If you instead compile with `python solve_color_connect.py input_p1.txt pretty`, the output will look something like this:  
-![Pretty Output](http://snappyimages.nextwavesrl.netdna-cdn.com/img/b7def6c1b375dbd2fa78d9af5fd8fc8a.png)
+![Pretty Output](https://farm2.staticflickr.com/1638/24925140366_6c2556f34f_o.png)
 
-#### Runtime
-It's all relative but here are the average times I got for solving puzzles 1, 2, and 3 with SMART_FINAL_DETECT set to False.
-1. 1.1 seconds
-2. 115 seconds
-3. 350 seconds
+## Heuristic
+Moves (or actions) are prioritized by the sum of the distances from each color's path head to its endpoint. Here is an example of how this distance is calculated:  
+![heuristic example](https://farm2.staticflickr.com/1592/24324585403_a47bf97959_o.png)  
 
-Here are the average times I got with SMART_FINAL_DETECT set to True.
-1. 0.35 seconds
-2. 12 seconds
-3. 5.7 seconds
+#### General Case
+`row_diff = |row_of_head - row_of_end|`  
+`col_diff = |col_of_head - col_of_end|`  
+`distance = (row_diff^2 + col_diff^2)^0.5`  
+
+#### Color Specific
+`0: (1^2 + 1^2)^0.5 = 1.414`  
+`1: (3^2 + 1^2)^0.5 = 3.162`  
+`2: (0^2 + 0^2)^0.5 = 0`  
+`3: (1^2 + 2^2)^0.5 = 2.236`  
+__Total Distance__ = 1.414 + 3.162 + 0 + 2.236 = __6.812__  
+#### Choosing a Child
+Each child's heuristic value will be calculated and then sent to a priority queue such that the first node in the priority queue will have the smallest total distance of any node in the queue. Nodes with the same total distance will be ordered by which was added first.
+
 
 ## Puzzle Details
 The game is Color Connect. Given a square playing board (n x n), connect the matching colors with an unbroken line. All colors must be connected and no two lines may cross. When referencing a point in the grid, the upper left corner is 0x0 and the column should be listed first. Ex: 1,2 = column 1, row 2

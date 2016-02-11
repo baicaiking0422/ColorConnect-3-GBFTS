@@ -6,7 +6,7 @@ AI - CS 5400 - Sec 1A
 Puzzle Assignmet 2 - Phase 1
 
 Trevor Ross
-02/03/2016
+02/09/2016
 """
 import copy
 import random
@@ -61,11 +61,11 @@ class Node(object):
         self.total_dist = 0.0
 
         for color_num in self.path_start.keys():
-            start = self.path_heads[color_num]
+            head = self.path_heads[color_num]
             end = self.path_end[color_num]
 
-            row_diff = abs(start[0] - end[0])
-            col_diff = abs(start[1] - end[1])
+            row_diff = abs(head[0] - end[0])
+            col_diff = abs(head[1] - end[1])
             path_len = (row_diff ** 2 + col_diff ** 2) ** (0.5)
             self.total_dist += path_len
 
@@ -95,9 +95,7 @@ class Node(object):
         ENDC = '\033[0m'
 
         # top horizontal divider
-        print '%s%s' % (('+---' * len(self.state)), '+'),
-        # total distance from goal state
-        print 'h(n) =', self.total_dist
+        print '%s%s' % (('+---' * len(self.state)), '+')
         for r, row in enumerate(self.state):
             print '|',  # front vertical divider
             for c, char in enumerate(row):
@@ -159,6 +157,7 @@ class StateTree(object):
         Action that produces the state with the smallest heuristic(n) is chosen
         """
         self.run_time = time.time()
+
         # create the priority queue and put the root in it
         # format: [node_priority, node_ID]
         frontier = []
@@ -169,11 +168,14 @@ class StateTree(object):
             # pop the first item of the priority queue, it will be evaluated
             node_ev = heapq.heappop(frontier)
             node_ev = self.node_dict[node_ev[1]]
+
+            ############
             # node_ev.visualize()
             # time.sleep(.2)
+            #############
+
             # check if the node is the final state
             if VerifyFinal(node_ev) is True:
-                print 'size of dict:', len(self.node_dict)
                 self.run_time = time.time() - self.run_time
                 return TraceBack(node_ev, self.node_dict)
 
@@ -236,7 +238,6 @@ class StateTree(object):
         result = raw_input('>')
         if result == 'q': exit(1)
         if result == 'f': self.show_status = False
-
 
 
 ################################################################################
@@ -398,7 +399,6 @@ def ActionOnColor(node, color):
         # if new cell is the the end cell, return only the associated action
         if [new_row, new_col] == end_coord:
             new_coord = [new_row, new_col]
-            valid_actions.append([color, action, new_coord])
             return [[color, action, new_coord]]
         # 1) invalid if action is out-of-bounds
         if OutOfBounds([new_row, new_col], len(node.state)):
@@ -554,5 +554,15 @@ def solve(pzzl_array, num_colors):
 
 # TODO
 # check what happens if puzzle is unsolvable
-# make sure entries in frontier with equal h(n) values are in the correct order (lowest ID first)
+# CREATE A BRANCH FOR CHANGES BELLOW
 # Remove comment about returning only the action that results in the final state
+# remove state_of_affairs() and all associated lines (including dir print)
+# remove optimizations list
+
+# OPTIMIZATIONS ADDED
+# Path cannot be adjacent to itself (test this)
+# no actions taken on ANY color if one color is at a dead end
+# do not return actions on colors who have been connected
+# if an action is found to connect the color to the goal, only return that action
+    # for that color
+# SMART_FINAL_DETECT option (disabled by default)
