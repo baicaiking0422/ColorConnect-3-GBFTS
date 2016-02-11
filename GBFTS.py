@@ -134,7 +134,7 @@ class StateTree(object):
         self.root = Node(self.uniq_ID, state=initial_puzzle)
         # find coordinates of the start of the color path
         self.root.path_start = FindColorStart(self.root.state, self.num_colors)
-        self.root.path_heads = self.root.path_start
+        self.root.path_heads = copy.deepcopy(self.root.path_start)
         # find coordinates of the end of the color path
         self.root.path_end = FindColorEnd(self.root.state, self.num_colors)
         # initialize root's path cost and total distance from goal
