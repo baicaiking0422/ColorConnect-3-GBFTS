@@ -1,4 +1,4 @@
-# Color Connect - Greedy Best-First Tree Search
+# Color Connect - Greedy Best-First Graph Search
 
 ## How to Build the Script
 #### Compiling*

@@ -165,7 +165,7 @@ class StateTree(object):
 
     def BestFirst_TS(self):
         """
-        Uses Greedy Best-First Tree Search to find solution
+        Uses Greedy Best-First Graph Search to find solution
 
         Heuristic = shortest distance between path_head and path_end
         Action that produces the state with the smallest heuristic(n) is chosen
@@ -197,7 +197,7 @@ class StateTree(object):
             # if a parent has no children, remove it from the node_dict
             if len(valid_actions) == 0:
                 del self.node_dict[node_ev.ID]
-                
+
             for color_num, action, new_coord in valid_actions:
                 self.uniq_ID += 1
                 # retulting child state from parent acted on by action
