@@ -1,5 +1,5 @@
 """
-Solves Color Connect Puzzle via iterative deepining, depth first search as per
+Solves Color Connect Puzzle via greedy best-first graph search as per
 Puzzle 2 requirement
 
 AI - CS 5400 - Sec 1A
@@ -69,7 +69,7 @@ class Node(object):
             path_len = (row_diff ** 2 + col_diff ** 2) ** (0.5)
             self.total_dist += path_len
 
-    def hash_heads(self):
+    def hashable_heads(self):
         """
         Returns a hashable object containing nessisary information from path_heads dictionary
 
@@ -81,11 +81,37 @@ class Node(object):
         OUTPUT: tuple in the form: (r0, c0, r1, c1,...) where r0 is the row value of
         the coordinate of the path head of color 0.
         """
-        hashable_heads = []
+        head_list = []
         for color_coord in self.path_heads.values():
-            hashable_heads.append(color_coord[0])
-            hashable_heads.append(color_coord[1])
-        return tuple(hashable_heads)
+            head_list.append(str(color_coord[0]))
+            head_list.append(str(color_coord[1]))
+        return ''.join(head_list)
+
+    def hashable_state(self):
+        """
+        Returns a hashable object containing nessisary information from path_heads dictionary
+
+        The path_heads are used to determine if this state has been visited before.
+        Although two unique states could have identical path_heads, only the first
+        will be added to the frontier since the second would simply be the different
+        means to the same end.
+        INPUT: Node.path_heads
+        OUTPUT: tuple in the form: (r0, c0, r1, c1,...) where r0 is the row value of
+        the coordinate of the path head of color 0.
+        """
+        state_list = []
+        for r, row in enumerate(self.state):
+            for c, cell in enumerate(row):
+                if [r,c] in self.path_end.values():
+                    c_num = int(cell)
+                    if self.path_heads[c_num] == self.path_end[c_num]:
+                        state_list.append('*')
+                state_list.append(cell)
+
+        return ''.join(state_list)
+
+    def hashable_heads_and_state(self):
+        return self.hashable_heads() + self.hashable_state()
 
     def state_info(self):
         """Prints contents of all member variables in node"""
@@ -178,14 +204,19 @@ class StateTree(object):
         # the explored set contains all the states already evaluated as well as
         # those in the frontier. Rather than searching the frontier and the
         # set of evaluated nodes seperatly, this set contains the union of those
-        # two sets so they can be both be searched at the same time.
-        explored = set(self.root.hash_heads())
+        # two sets so they can both be be searched at the same time.
+        explored = set(self.root.hashable_heads_and_state())
 
         # loop until broken by final state or no nodes left in frontier
         while frontier:
             # pop the first item of the priority queue, it will be evaluated
             node_ev = heapq.heappop(frontier)
             node_ev = self.node_dict[node_ev[1]]
+
+            #######
+            # node_ev.visualize()
+            # time.sleep(.2)
+            #######
 
             # check if the node is the final state
             if VerifyFinal(node_ev) is True:
@@ -206,12 +237,16 @@ class StateTree(object):
                 child = Node(self.uniq_ID, child_state, action=([color_num] + new_coord), parent_node=node_ev)
                 # updated the child's path head and total_dist
                 child.path_heads[color_num] = new_coord
-
+                # GRAPH SEARCH
                 # if the child exists in the explored set, do not add it to the frontier
-                if child.hash_heads() in explored:
+                if child.hashable_heads_and_state() in explored:
+                    # print 'v'*10
+                    # print 'child in explored set:', child.hashable_heads_and_state()
+                    # child.visualize()
+                    # print '^'*10
                     continue
                 # otherwise, add it to the explored set, the node_dict, and the frontier
-                explored.add(node_ev.hash_heads())
+                explored.add(child.hashable_heads_and_state())
                 child.heuristic()
                 # add child to node_dict and frontier
                 self.node_dict[child.ID] = child
