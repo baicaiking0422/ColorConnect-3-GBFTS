@@ -69,6 +69,24 @@ class Node(object):
             path_len = (row_diff ** 2 + col_diff ** 2) ** (0.5)
             self.total_dist += path_len
 
+    def hash_heads(self):
+        """
+        Returns a hashable object containing nessisary information from path_heads dictionary
+
+        The path_heads are used to determine if this state has been visited before.
+        Although two unique states could have identical path_heads, only the first
+        will be added to the frontier since the second would simply be the different
+        means to the same end.
+        INPUT: Node.path_heads
+        OUTPUT: tuple in the form: (r0, c0, r1, c1,...) where r0 is the row value of
+        the coordinate of the path head of color 0.
+        """
+        hashable_heads = []
+        for color_coord in self.path_heads.values():
+            hashable_heads.append(color_coord[0])
+            hashable_heads.append(color_coord[1])
+        return tuple(hashable_heads)
+
     def state_info(self):
         """Prints contents of all member variables in node"""
         print '=' * 30
@@ -157,17 +175,17 @@ class StateTree(object):
         # format: [node_priority, node_ID]
         frontier = []
         heapq.heappush(frontier, [self.root.total_dist, self.root.ID])
+        # the explored set contains all the states already evaluated as well as
+        # those in the frontier. Rather than searching the frontier and the
+        # set of evaluated nodes seperatly, this set contains the union of those
+        # two sets so they can be both be searched at the same time.
+        explored = set(self.root.hash_heads())
 
         # loop until broken by final state or no nodes left in frontier
         while frontier:
             # pop the first item of the priority queue, it will be evaluated
             node_ev = heapq.heappop(frontier)
             node_ev = self.node_dict[node_ev[1]]
-
-            ############
-            # node_ev.visualize()
-            # time.sleep(.2)
-            #############
 
             # check if the node is the final state
             if VerifyFinal(node_ev) is True:
@@ -176,8 +194,10 @@ class StateTree(object):
 
             # find all the valid actions from node_ev and iterate through them
             valid_actions = Action(node_ev, self.num_colors)
+            # if a parent has no children, remove it from the node_dict
             if len(valid_actions) == 0:
                 del self.node_dict[node_ev.ID]
+                
             for color_num, action, new_coord in valid_actions:
                 self.uniq_ID += 1
                 # retulting child state from parent acted on by action
@@ -186,6 +206,12 @@ class StateTree(object):
                 child = Node(self.uniq_ID, child_state, action=([color_num] + new_coord), parent_node=node_ev)
                 # updated the child's path head and total_dist
                 child.path_heads[color_num] = new_coord
+
+                # if the child exists in the explored set, do not add it to the frontier
+                if child.hash_heads() in explored:
+                    continue
+                # otherwise, add it to the explored set, the node_dict, and the frontier
+                explored.add(node_ev.hash_heads())
                 child.heuristic()
                 # add child to node_dict and frontier
                 self.node_dict[child.ID] = child
