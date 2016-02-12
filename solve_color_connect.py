@@ -79,7 +79,7 @@ def input_error(e_type):
         exit(1)
     elif e_type == "invalid name":
         # input file does not exist
-        print FAIL + 'ERROR: the file you enered as input does not exist in local directory'
+        print FAIL + 'ERROR: the file you enered as input does not exist in input directory'
         print 'CORRECT EXAMPLE: "solve_color_connect.py input_p1.txt"\n' + ENDC
         exit(1)
     elif e_type == 'no pretty':
