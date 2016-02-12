@@ -449,38 +449,6 @@ def TraceBack(end_node, node_dict):
     node_path.insert(0, node)
     return node_path
 
-
-def DirPrint(directions):
-    """
-    Translates list of actiton coordinates into plain english and prints them
-
-    INPUT: [[0,1], [-1,0], etc.]
-    OUTPUT: right, up, down, left, etc.
-    """
-    for direction in directions:
-        row_dir = direction[0]
-        col_dir = direction[1]
-        if len(direction) == 3:
-            color = str(direction[2]) + ': '
-        else:
-            color = ''
-
-        if row_dir == 0:
-            if col_dir == 1:
-                print '%sright,' % color,
-            elif col_dir == -1:
-                print '%sleft,' % color,
-            else:
-                # this one should never be used
-                print '%sstay,' % color,
-        elif row_dir == 1:
-            print '%sdown,' % color,
-        else:
-            print '%sup,' % color,
-
-    print
-
-
 ################################################################################
 # Main
 ################################################################################
