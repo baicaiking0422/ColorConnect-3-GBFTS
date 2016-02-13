@@ -10,6 +10,7 @@ Trevor Ross
 """
 import GBFGS
 import sys
+import os
 
 def parse_arguments(args):
     """
@@ -103,6 +104,10 @@ def UglyPrint(sol_nodes, duration):
     in_file_name = sys.argv[1]
     out_file_name = 'p%s_solution.txt' % in_file_name[7]
     out_file_path = 'output/' + out_file_name
+    # ensure output directory exists
+    d = os.path.dirname(out_file_path)
+    if not os.path.exists(d):
+        os.makedirs(d)
     out_file = open(out_file_path, 'w')
 
     # time in microseconds
