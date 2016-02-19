@@ -66,6 +66,9 @@ class Node(object):
 
             row_diff = abs(head[0] - end[0])
             col_diff = abs(head[1] - end[1])
+            # MANHATTAN DISTANCE
+            # path_len = row_diff + col_diff
+            # EUCHLIDIAN DISTANC
             path_len = (row_diff ** 2 + col_diff ** 2) ** (0.5)
             self.total_dist += path_len
 
